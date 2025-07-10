@@ -1,0 +1,32 @@
+services:
+  # Serviço do Backend (API Node.js)
+  backend:
+    build: ./backend
+    environment:
+      # A URL de conexão para o banco de dados MongoDB
+      DATABASE_URL: mongodb://root:examplepassword@db:27017/driverhours?authSource=admin
+      # Adicione o segredo do JWT aqui. Use um valor longo e aleatório.
+      JWT_SECRET: "seu-segredo-super-secreto-e-longo-aqui-gerado-aleatoriamente"
+    depends_on:
+      - db # Garante que o banco de dados inicie antes do backend
+
+  # Serviço do Frontend (Nginx + arquivos estáticos)
+  frontend:
+    build: ./frontend
+    ports:
+      - "8080:80" # Acesse a aplicação em http://localhost:8080
+    depends_on:
+      - backend # Garante que o backend inicie antes do frontend
+
+  # Novo serviço para o Banco de Dados MongoDB
+  db:
+    image: mongo:4.4 # Usando uma versão compatível que não exige AVX
+    volumes:
+      - mongo-data:/data/db # Mapeia o volume para persistir os dados
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: root
+      MONGO_INITDB_ROOT_PASSWORD: examplepassword
+
+# Define o volume nomeado para persistência dos dados do MongoDB
+volumes:
+  mongo-data:
