@@ -87,9 +87,4 @@ O projeto é dividido em três serviços principais, orquestrados pelo Docker Co
 
     ```bash
     docker-compose down
-<<<<<<< HEAD
-    ```
-=======
-    ```
 
->>>>>>> 94684e439916ac733d3d8ecb5e6d13b65c07b109
