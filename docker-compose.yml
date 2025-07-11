@@ -3,10 +3,9 @@ services:
   backend:
     build: ./backend
     environment:
-      # A URL de conexão para o banco de dados MongoDB
       DATABASE_URL: mongodb://root:examplepassword@db:27017/driverhours?authSource=admin
-      # Adicione o segredo do JWT aqui. Use um valor longo e aleatório.
-      JWT_SECRET: "seu-segredo-super-secreto-e-longo-aqui-gerado-aleatoriamente"
+    env_file:
+      - ./.env # Carrega variáveis de ambiente do arquivo .env
     depends_on:
       - db # Garante que o banco de dados inicie antes do backend
 

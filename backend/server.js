@@ -5,8 +5,13 @@ const { MongoClient, ObjectId } = require('mongodb');
 
 const app = express();
 const PORT = 3000;
-const JWT_SECRET = 'seu-segredo-super-secreto-e-longo-aqui'; // Mude isso para uma string aleatória e segura!
+const JWT_SECRET = process.env.JWT_SECRET;
 const DATABASE_URL = process.env.DATABASE_URL || 'mongodb://localhost:27017';
+
+if (!JWT_SECRET) {
+    console.error("FATAL ERROR: JWT_SECRET is not defined. Please set it in your environment variables.");
+    process.exit(1); // Encerra a aplicação se o segredo não estiver definido
+}
 
 // Middleware para processar JSON
 app.use(express.json());

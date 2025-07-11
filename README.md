@@ -56,18 +56,17 @@ O projeto é dividido em três serviços principais, orquestrados pelo Docker Co
     ```
 
 2.  **Configure as Variáveis de Ambiente:**
-    O arquivo `docker-compose.yml` já contém as variáveis necessárias, incluindo um `JWT_SECRET` de exemplo. Para um ambiente de produção, é **altamente recomendável** alterar o valor de `JWT_SECRET` para uma string longa e aleatória para garantir a segurança.
+    Crie um arquivo chamado `.env` na raiz do projeto. Este arquivo guardará suas variáveis de ambiente secretas e não será enviado para o GitHub.
 
-    ```yaml
-    # Em docker-compose.yml
-    services:
-      backend:
-        # ...
-        environment:
-          # ...
-          # Altere o valor abaixo para um segredo forte e único
-          JWT_SECRET: "altere-para-um-segredo-muito-forte-e-aleatorio-aqui"
+    Copie o conteúdo abaixo para o seu arquivo `.env`:
+
+    ```bash
+    # .env
+    # Substitua o valor abaixo por um segredo forte, longo e aleatório.
+    # Você pode usar um gerador de senhas online para criar um.
+    JWT_SECRET="seu-segredo-super-secreto-e-longo-aqui-gerado-aleatoriamente"
     ```
+    O arquivo `.gitignore` do projeto já está configurado para ignorar o arquivo `.env`, garantindo que ele não seja exposto.
 
 3.  **Inicie os contêineres:**
     Execute o comando a seguir na raiz do projeto. O argumento `--build` garante que as imagens Docker serão construídas a partir dos `Dockerfiles` na primeira vez. O `-d` executa os contêineres em modo "detached" (em segundo plano).
@@ -87,4 +86,4 @@ O projeto é dividido em três serviços principais, orquestrados pelo Docker Co
 
     ```bash
     docker-compose down
-
+    ```
