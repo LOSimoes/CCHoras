@@ -65,3 +65,4 @@ export function initAuth() {
 // Funções "getter" para que outros módulos possam consultar o estado de forma segura.
 export const isAuthenticated = () => !!state.token;
 export const isAdmin = () => state.isAdmin;
+export const getUserId = () => state.userId;

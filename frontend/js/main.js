@@ -224,7 +224,16 @@ function setupEventListeners() {
             await api.updateUser(id, updateData);
             ui.toggleModal(ui.elements.editUserModal, false);
             ui.showSuccess('Usuário atualizado com sucesso!');
-            await refreshAdminData();
+
+            // Se o admin editou o próprio nome de usuário, força o logout para
+            // evitar inconsistência de sessão, pois o token JWT antigo é invalidado.
+            if (id === auth.getUserId() && updateData.username) {
+                alert('Você alterou seu próprio nome de usuário. Para garantir a consistência da sessão, você será desconectado. Por favor, faça login novamente.');
+                auth.handleLogout();
+                ui.updateUIVisibility(false, false);
+            } else {
+                await refreshAdminData();
+            }
         } catch (error) { ui.showError(error.message, ui.elements.editUserError); }
     });
 

@@ -2,9 +2,7 @@
 
 Esta é uma aplicação web full-stack projetada para ajudar motoristas e outros profissionais a registrar e gerenciar suas horas de trabalho diárias. A ferramenta oferece uma interface simples para adicionar horas, visualizar resumos semanais e mensais, e exportar relatórios. Inclui também um sistema de autenticação e um painel de administração para gerenciamento de usuários e configurações.
 
-A aplicação é totalmente containerizada com Docker, facilitando a configuração e a execução em qualquer ambiente.
-
- <!-- TODO: Substitua por um screenshot real da sua aplicação -->
+O frontend foi recentemente refatorado para usar ES Modules, resultando em um código mais organizado, manutenível e desacoplado. A aplicação é totalmente containerizada com Docker, facilitando a configuração e a execução em qualquer ambiente.
 
 ## ✨ Funcionalidades Principais
 

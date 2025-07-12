@@ -1,0 +1,12 @@
+# Arquivos de ambiente - NÃO ENVIE PARA O GIT!
+.env
+
+# Dependências do Node.js
+/backend/node_modules
+
+# Arquivos de sistema operacional
+.DS_Store
+Thumbs.db
+
+# Arquivos de log
+*.log
