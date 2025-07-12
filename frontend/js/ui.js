@@ -87,6 +87,21 @@ export const showSuccess = (message) => {
     }
 };
 
+/**
+ * Exibe uma mensagem informativa que desaparece.
+ * @param {string} message A mensagem a ser exibida.
+ * @param {HTMLElement} [target=elements.errorDiv] O elemento onde mostrar a mensagem.
+ * @param {number} [duration=5000] Duração em milissegundos.
+ */
+export const showInfo = (message, target = elements.errorDiv, duration = 5000) => {
+    target.textContent = message;
+    target.classList.remove('success', 'error');
+    target.classList.add('info'); // Adicione um estilo para .info no seu CSS se desejar
+    if (message && duration > 0) {
+        setTimeout(() => { target.textContent = ''; target.classList.remove('info'); }, duration);
+    }
+};
+
 // 3. UI State and Visibility Management
 
 /**

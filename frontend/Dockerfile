@@ -11,4 +11,7 @@ COPY index.html styles.css /usr/share/nginx/html/
 COPY js/ /usr/share/nginx/html/js/
 
 # Exponha a porta padrão do Nginx
-EXPOSE 80
+EXPOSE 8080
+
+# Comando para iniciar o Nginx
+CMD ["nginx", "-g", "daemon off;"]     

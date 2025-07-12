@@ -14,5 +14,11 @@ COPY js/ /usr/share/nginx/html/js/
 # Expõe a porta que o Nginx vai escutar, definida pela variável de ambiente PORT
 EXPOSE 8080
 
+# O Nginx é iniciado com o comando padrão, que é necessário para o Cloud Run
+# O comando CMD é herdado da imagem base, que é exatamente o que o Cloud Run
+# precisa para iniciar o servidor.
+# O Cloud Run espera que o Nginx esteja rodando em primeiro plano, então usamos
+# o comando padrão do Nginx para manter o processo ativo.       
+
 # O comando CMD é herdado da imagem base (nginx -g 'daemon off;'),
 # que é exatamente o que o Cloud Run precisa para iniciar o servidor.

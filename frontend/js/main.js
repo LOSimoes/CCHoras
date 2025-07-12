@@ -225,12 +225,15 @@ function setupEventListeners() {
             ui.toggleModal(ui.elements.editUserModal, false);
             ui.showSuccess('Usuário atualizado com sucesso!');
 
-            // Se o admin editou o próprio nome de usuário, força o logout para
-            // evitar inconsistência de sessão, pois o token JWT antigo é invalidado.
+            // Se o admin editou o próprio nome de usuário, força o logout para evitar
+            // inconsistência de sessão, pois o token JWT antigo se torna inválido.
             if (id === auth.getUserId() && updateData.username) {
-                alert('Você alterou seu próprio nome de usuário. Para garantir a consistência da sessão, você será desconectado. Por favor, faça login novamente.');
-                auth.handleLogout();
-                ui.updateUIVisibility(false, false);
+                ui.showInfo('Nome de usuário alterado. Você será desconectado para aplicar a mudança.', ui.elements.errorDiv, 6000);
+                // Adiciona um pequeno atraso para o usuário ler a mensagem antes do logout
+                setTimeout(() => {
+                    auth.handleLogout();
+                    ui.updateUIVisibility(false, false);
+                }, 2000);
             } else {
                 await refreshAdminData();
             }
