@@ -1,0 +1,24 @@
+steps:
+# 1. Build the container image for the backend
+- name: 'gcr.io/cloud-builders/docker'
+  args: ['build', '-t', 'us-central1-docker.pkg.dev/$PROJECT_ID/cchoras-repo/backend:latest', './backend']
+
+# 2. Push the container image to Artifact Registry
+- name: 'gcr.io/cloud-builders/docker'
+  args: ['push', 'us-central1-docker.pkg.dev/$PROJECT_ID/cchoras-repo/backend:latest']
+
+# 3. Deploy the new version to Cloud Run, referencing the secrets
+- name: 'gcr.io/google.com/cloudsdktool/cloud-sdk'
+  entrypoint: gcloud
+  args:
+    - 'run'
+    - 'deploy'
+    - 'cchoras-backend'
+    - '--image=us-central1-docker.pkg.dev/$PROJECT_ID/cchoras-repo/backend:latest'
+    - '--region=us-central1'
+    - '--platform=managed'
+    - '--set-secrets=DATABASE_URL=cchoras-db-url:latest,JWT_SECRET=cchoras-jwt-secret:latest'
+
+# Store the final image in Artifact Registry for traceability
+images:
+- 'us-central1-docker.pkg.dev/$PROJECT_ID/cchoras-repo/backend:latest'
