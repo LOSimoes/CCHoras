@@ -1,0 +1,18 @@
+# Use uma imagem oficial do Nginx como base
+FROM nginx:alpine
+
+# O Cloud Run injeta a variável de ambiente PORT. O padrão é 8080.
+ENV PORT=8080
+
+# Copia o template de configuração do Nginx
+COPY nginx.prod.conf /etc/nginx/conf.d/default.conf
+
+# Copia os arquivos estáticos da aplicação
+COPY index.html styles.css /usr/share/nginx/html/
+COPY js/ /usr/share/nginx/html/js/
+
+# Expõe a porta que o Nginx vai escutar, definida pela variável de ambiente PORT
+EXPOSE 8080
+
+# O comando CMD é herdado da imagem base (nginx -g 'daemon off;'),
+# que é exatamente o que o Cloud Run precisa para iniciar o servidor.

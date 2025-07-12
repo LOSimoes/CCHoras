@@ -4,13 +4,18 @@ const jwt = require('jsonwebtoken');
 const { MongoClient, ObjectId } = require('mongodb');
 
 const app = express();
-const PORT = 3000;
+const PORT = process.env.PORT || 3000; // Usa a porta do ambiente ou 3000 como padrão
 const JWT_SECRET = process.env.JWT_SECRET;
-const DATABASE_URL = process.env.DATABASE_URL || 'mongodb://localhost:27017';
+const DATABASE_URL = process.env.DATABASE_URL;
 
 if (!JWT_SECRET) {
     console.error("FATAL ERROR: JWT_SECRET is not defined. Please set it in your environment variables.");
     process.exit(1); // Encerra a aplicação se o segredo não estiver definido
+}
+
+if (!DATABASE_URL) {
+    console.error("FATAL ERROR: DATABASE_URL is not defined. Please set it in your environment variables.");
+    process.exit(1);
 }
 
 // Middleware para processar JSON
@@ -45,6 +50,11 @@ async function isAdmin(req, res, next) {
         res.sendStatus(403); // Forbidden
     }
 }
+
+// --- Rota Raiz (Health Check) ---
+app.get('/', (req, res) => {
+    res.status(200).json({ status: 'ok', message: 'CCHoras Backend is running.' });
+});
 
 // --- Endpoints de Autenticação ---
 
