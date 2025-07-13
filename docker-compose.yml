@@ -9,6 +9,12 @@ services:
     volumes:
       # Persiste os dados do banco de dados em um volume nomeado
       - mongo-data:/data/db
+    healthcheck:
+      # Testa se o servidor MongoDB está respondendo.
+      test: ["CMD", "mongo", "--eval", "db.adminCommand('ping')"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
     networks:
       - cchoras-net
 
@@ -18,7 +24,8 @@ services:
     container_name: cchoras_backend
     restart: unless-stopped
     depends_on:
-      - db # Garante que o banco de dados inicie antes do backend
+      db:
+        condition: service_healthy # Inicia o backend apenas quando o healthcheck do 'db' passar.
     env_file:
       - ./.env # Carrega o JWT_SECRET a partir de um arquivo .env
     environment:
@@ -31,6 +38,12 @@ services:
       - ./backend:/usr/src/app
       # Evita que a pasta node_modules local sobrescreva a do contêiner
       - /usr/src/app/node_modules
+    healthcheck:
+      # Testa se o servidor Node.js está respondendo na rota de health check.
+      test: ["CMD", "curl", "-f", "http://localhost:3000/"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
     networks:
       - cchoras-net
 
@@ -40,7 +53,8 @@ services:
     container_name: cchoras_frontend
     restart: unless-stopped
     depends_on:
-      - backend # Garante que o backend inicie antes do frontend
+      backend:
+        condition: service_healthy # Inicia o frontend apenas quando o healthcheck do 'backend' passar.
     ports:
       # Mapeia a porta 8080 do seu computador para a porta 8080 do contêiner
       # Acesse a aplicação em http://localhost:8080

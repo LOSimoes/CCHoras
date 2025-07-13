@@ -4,6 +4,10 @@ substitutions:
   _FRONTEND_SERVICE: 'cchoras-frontend'
   _REPO_NAME: 'cchoras-repo'
 
+options:
+  # Envia os logs apenas para o Cloud Logging, evitando erros de permissão no bucket de logs.
+  logging: CLOUD_LOGGING_ONLY
+
 steps:
 # --- Run Backend Tests ---
 # Este passo instala as dependências (incluindo as de desenvolvimento) e roda os testes.
