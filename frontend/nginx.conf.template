@@ -1,0 +1,28 @@
+server {
+  # O Nginx escutará na porta fornecida pela variável de ambiente PORT do Cloud Run (ex: 8080).
+  listen ${PORT};
+
+  # Define o diretório raiz para os arquivos estáticos.
+  root /usr/share/nginx/html;
+  index index.html;
+
+  # Redireciona todas as chamadas de API (/api/...) para o serviço de backend.
+  location /api/ {
+    # A variável BACKEND_URL é o hostname do serviço de backend,
+    # que passamos no cloudbuild.yaml.
+    # Ex: cchoras-backend-q4w5e6r7s8-uc.a.run.app
+    proxy_pass https://${BACKEND_URL};
+
+    # Cabeçalhos necessários para que o proxy funcione corretamente com o Cloud Run.
+    proxy_set_header Host ${BACKEND_URL};
+    proxy_set_header X-Real-IP $remote_addr;
+    proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+    proxy_set_header X-Forwarded-Proto $scheme;
+  }
+
+  # Fallback para qualquer requisição que não encontre um arquivo.
+  # Essencial para Single Page Applications (SPAs) funcionarem com rotas no frontend.
+  location / {
+    try_files $uri $uri/ /index.html;
+  }
+}
