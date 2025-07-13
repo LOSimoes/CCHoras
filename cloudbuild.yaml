@@ -14,7 +14,7 @@ steps:
 - name: 'node:18'
   id: 'Install Backend Dependencies'
   entrypoint: 'npm'
-  args: ['install']
+  args: ['ci']
   dir: 'backend'
 
 - name: 'node:18'
@@ -62,7 +62,7 @@ steps:
 # --- Deploy Frontend ---
 # This step runs after the frontend image is pushed AND the backend is deployed.
 - name: 'gcr.io/google.com/cloudsdktool/cloud-sdk'
-  id: 'Deploy Frontend'
+  id: 'Get Backend URL and Deploy Frontend'
   entrypoint: 'bash'
   args:
     - '-c'

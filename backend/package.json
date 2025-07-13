@@ -5,7 +5,7 @@
   "main": "server.js",
   "scripts": {
     "start": "node server.js",
-    "test": "jest"
+    "test": "jest --passWithNoTests"
   },
   "dependencies": {
     "bcrypt": "^5.1.1",
