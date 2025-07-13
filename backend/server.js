@@ -80,28 +80,25 @@ app.post('/api/auth/register', asyncHandler(async (req, res) => {
     res.status(201).json({ message: "Usuário registrado com sucesso." });
 }));
 
-app.post('/api/auth/login', async (req, res, next) => {
+app.post('/api/auth/login', asyncHandler(async (req, res) => {
     const { username, password } = req.body;
     const user = await usersCollection.findOne({ username });
     if (user == null) {
         return res.status(400).json({ error: "Usuário não encontrado." });
     }
-    try {
-        if (await bcrypt.compare(password, user.passwordHash)) {
-            const payload = { 
-                username: user.username, 
-                userId: user._id, // Adicionando o ID do usuário ao payload do token
-                isAdmin: !!user.isAdmin // Adicionando o status de admin ao token
-            };
-            const accessToken = jwt.sign(payload, JWT_SECRET, { expiresIn: '24h' });
-            res.json({ accessToken: accessToken, isAdmin: !!user.isAdmin, userId: user._id });
-        } else {
-            res.status(401).json({ error: "Senha incorreta." });
-        }
-    } catch (err) {
-        next(err); // Passa o erro para o middleware central
+
+    if (await bcrypt.compare(password, user.passwordHash)) {
+        const payload = { 
+            username: user.username, 
+            userId: user._id,
+            isAdmin: !!user.isAdmin
+        };
+        const accessToken = jwt.sign(payload, JWT_SECRET, { expiresIn: '24h' });
+        res.json({ accessToken: accessToken, isAdmin: !!user.isAdmin, userId: user._id });
+    } else {
+        res.status(401).json({ error: "Senha incorreta." });
     }
-});
+}));
 
 // --- Endpoints de Dados (Agora Protegidos) ---
 
