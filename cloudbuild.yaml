@@ -1,24 +1,93 @@
+substitutions:
+  _REGION: 'us-central1'
+  _BACKEND_SERVICE: 'cchoras-backend'
+  _FRONTEND_SERVICE: 'cchoras-frontend'
+  _REPO_NAME: 'cchoras-repo'
+
 steps:
-# 1. Build the container image for the backend
-- name: 'gcr.io/cloud-builders/docker'
-  args: ['build', '-t', 'us-central1-docker.pkg.dev/$PROJECT_ID/cchoras-repo/backend:latest', './backend']
+# --- Run Backend Tests ---
+# Este passo instala as dependências (incluindo as de desenvolvimento) e roda os testes.
+- name: 'node:18'
+  id: 'Install Backend Dependencies'
+  entrypoint: 'npm'
+  args: ['install']
+  dir: 'backend'
 
-# 2. Push the container image to Artifact Registry
-- name: 'gcr.io/cloud-builders/docker'
-  args: ['push', 'us-central1-docker.pkg.dev/$PROJECT_ID/cchoras-repo/backend:latest']
+- name: 'node:18'
+  id: 'Run Backend Tests'
+  entrypoint: 'npm'
+  args: ['test']
+  dir: 'backend'
 
-# 3. Deploy the new version to Cloud Run, referencing the secrets
+# --- Backend Build & Push (in parallel) ---
+- name: 'gcr.io/cloud-builders/docker'
+  id: 'Build Backend'
+  args: ['build', '-t', '${_REGION}-docker.pkg.dev/$PROJECT_ID/${_REPO_NAME}/backend:latest', './backend']
+
+- name: 'gcr.io/cloud-builders/docker'
+  id: 'Push Backend'
+  args: ['push', '${_REGION}-docker.pkg.dev/$PROJECT_ID/${_REPO_NAME}/backend:latest']
+  waitFor: ['Build Backend']
+
+# --- Frontend Build & Push (in parallel) ---
+- name: 'gcr.io/cloud-builders/docker'
+  id: 'Build Frontend'
+  args: ['build', '-t', '${_REGION}-docker.pkg.dev/$PROJECT_ID/${_REPO_NAME}/frontend:latest', '-f', 'frontend/Dockerfile.prod', './frontend']
+
+- name: 'gcr.io/cloud-builders/docker'
+  id: 'Push Frontend'
+  args: ['push', '${_REGION}-docker.pkg.dev/$PROJECT_ID/${_REPO_NAME}/frontend:latest']
+  waitFor: ['Build Frontend']
+
+# --- Deploy Backend ---
+# This step runs after the backend image is pushed.
 - name: 'gcr.io/google.com/cloudsdktool/cloud-sdk'
+  id: 'Deploy Backend'
   entrypoint: gcloud
   args:
     - 'run'
     - 'deploy'
-    - 'cchoras-backend'
-    - '--image=us-central1-docker.pkg.dev/$PROJECT_ID/cchoras-repo/backend:latest'
-    - '--region=us-central1'
+    - '${_BACKEND_SERVICE}'
+    - '--image=${_REGION}-docker.pkg.dev/$PROJECT_ID/${_REPO_NAME}/backend:latest'
+    - '--region=${_REGION}'
     - '--platform=managed'
+    - '--allow-unauthenticated'
     - '--set-secrets=DATABASE_URL=cchoras-db-url:latest,JWT_SECRET=cchoras-jwt-secret:latest'
+  waitFor: ['Push Backend']
 
-# Store the final image in Artifact Registry for traceability
+# --- Deploy Frontend ---
+# This step runs after the frontend image is pushed AND the backend is deployed.
+- name: 'gcr.io/google.com/cloudsdktool/cloud-sdk'
+  id: 'Deploy Frontend'
+  entrypoint: 'bash'
+  args:
+    - '-c'
+    - |
+      # 1. Obtém a URL completa do serviço de backend que acabou de ser implantado.
+      BACKEND_FULL_URL=$(gcloud run services describe ${_BACKEND_SERVICE} --platform=managed --region=${_REGION} --format='value(status.url)')
+      
+      # 2. Verifica se a URL foi obtida com sucesso.
+      if [ -z "$BACKEND_FULL_URL" ]; then
+        echo "ERRO: Não foi possível obter a URL do backend."
+        exit 1
+      fi
+
+      # 3. Remove o prefixo 'https://' para obter apenas o hostname, como esperado pelo Nginx.
+      BACKEND_HOSTNAME=$${BACKEND_FULL_URL#https://}
+      
+      echo "Implantando frontend com o hostname do backend: $$BACKEND_HOSTNAME"
+      
+      # 4. Implanta o frontend, passando a URL dinâmica como variável de ambiente.
+      # $PROJECT_ID é uma substituição do Cloud Build, enquanto $$BACKEND_HOSTNAME é uma variável do nosso script.
+      gcloud run deploy cchoras-frontend \
+        --image=${_REGION}-docker.pkg.dev/$PROJECT_ID/${_REPO_NAME}/frontend:latest \
+        --region=${_REGION} \
+        --platform=managed \
+        --allow-unauthenticated \
+        --set-env-vars="BACKEND_URL=$$BACKEND_HOSTNAME"
+  waitFor: ['Push Frontend', 'Deploy Backend']
+
+# Store the final images in Artifact Registry for traceability
 images:
-- 'us-central1-docker.pkg.dev/$PROJECT_ID/cchoras-repo/backend:latest'
+- '${_REGION}-docker.pkg.dev/$PROJECT_ID/${_REPO_NAME}/backend:latest'
+- '${_REGION}-docker.pkg.dev/$PROJECT_ID/${_REPO_NAME}/frontend:latest'

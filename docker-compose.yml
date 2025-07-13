@@ -1,63 +1,58 @@
-# Versão do Docker Compose
 version: '3.8'
 
 services:
+  # Serviço do Banco de Dados MongoDB
+  db:
+    image: mongo:4.4 # Versão estável que não exige instruções de CPU AVX
+    container_name: cchoras_mongo_db
+    restart: unless-stopped
+    volumes:
+      # Persiste os dados do banco de dados em um volume nomeado
+      - mongo-data:/data/db
+    networks:
+      - cchoras-net
+
   # Serviço do Backend (API Node.js)
   backend:
     build: ./backend
-    # Carrega variáveis de ambiente do arquivo .env na raiz do projeto.
-    # É aqui que o JWT_SECRET deve ser definido.
-    env_file:
-      - ./.env
-    environment:
-      # A porta em que o Node.js vai rodar DENTRO do contêiner.
-      - PORT=8080
-      # A URL para se conectar ao serviço de banco de dados 'db' nesta mesma rede.
-      - DATABASE_URL=mongodb://db:27017/cchoras
-    ports:
-      # Mapeia a porta 3000 do seu computador para a porta 8080 do contêiner.
-      - "3000:8080"
-    volumes:
-      # Sincroniza o código local com o contêiner para desenvolvimento ao vivo.
-      - ./backend:/usr/src/app
-      # Usa um volume para node_modules para evitar que o local sobrescreva o do contêiner.
-      - /usr/src/app/node_modules
-    command: npm start
-    networks:
-      - cchoras-net
+    container_name: cchoras_backend
     restart: unless-stopped
     depends_on:
-      - db
+      - db # Garante que o banco de dados inicie antes do backend
+    env_file:
+      - ./.env # Carrega o JWT_SECRET a partir de um arquivo .env
+    environment:
+      # A URL para se conectar ao serviço 'db' nesta mesma rede
+      - DATABASE_URL=mongodb://db:27017/cchoras
+      # A porta que o Node.js vai escutar DENTRO do contêiner
+      - PORT=3000
+    volumes:
+      # Sincroniza o código local com o contêiner para desenvolvimento ao vivo
+      - ./backend:/usr/src/app
+      # Evita que a pasta node_modules local sobrescreva a do contêiner
+      - /usr/src/app/node_modules
+    networks:
+      - cchoras-net
 
-  # Serviço do Frontend (Nginx + arquivos estáticos)
+  # Serviço do Frontend (Nginx)
   frontend:
     build: ./frontend
-    ports:
-      # Mapeia a porta 8080 do seu computador para a porta 80 do contêiner.
-      # Acesse a aplicação em http://localhost:8080
-      - "8080:80"
-    networks:
-      - cchoras-net
+    container_name: cchoras_frontend
+    restart: unless-stopped
     depends_on:
-      - backend
-
-  # Serviço do Banco de Dados MongoDB
-  db:
-    image: mongo:4.4
-    volumes:
-      # Persiste os dados do banco de dados em um volume nomeado.
-      - mongo-data:/data/db
-    environment:
-      - MONGO_INITDB_ROOT_USERNAME=root
-      - MONGO_INITDB_ROOT_PASSWORD=examplepassword
+      - backend # Garante que o backend inicie antes do frontend
+    ports:
+      # Mapeia a porta 8080 do seu computador para a porta 8080 do contêiner
+      # Acesse a aplicação em http://localhost:8080
+      - "8080:8080"
     networks:
       - cchoras-net
 
-# Define a rede compartilhada para os serviços se comunicarem.
+# Define a rede compartilhada para os serviços se comunicarem
 networks:
   cchoras-net:
     driver: bridge
 
-# Define o volume nomeado para persistência dos dados do MongoDB.
+# Define o volume nomeado para persistir os dados do MongoDB
 volumes:
   mongo-data:

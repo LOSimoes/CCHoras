@@ -1,18 +1,26 @@
-# Use uma imagem Node.js leve
-FROM node:18-alpine
+# --- Estágio de Build ---
+# Usa uma imagem Node completa para instalar dependências de forma eficiente.
+FROM node:18-alpine AS builder
 
-# Define o diretório de trabalho dentro do contêiner
 WORKDIR /usr/src/app
 
-# Copia os arquivos de dependência e instala (o * garante que package-lock.json seja copiado se existir)
 COPY package*.json ./
-RUN npm install
 
-# Copia o resto do código da aplicação
+# Instala apenas as dependências de produção para manter a imagem final enxuta.
+RUN npm ci --omit=dev
+
 COPY . .
 
-# Expõe a porta que a aplicação vai rodar
-EXPOSE 8080
+# --- Estágio de Produção ---
+# Usa uma imagem base mínima para a execução, aumentando a segurança e diminuindo o tamanho.
+FROM node:18-alpine
 
-# Comando para iniciar a aplicação
-CMD [ "npm", "start" ]
+# Define um usuário não-root para maior segurança (best practice).
+USER node
+
+WORKDIR /home/node/app
+
+# Copia as dependências e o código do estágio de build.
+COPY --from=builder /usr/src/app .
+
+CMD [ "node", "server.js" ]

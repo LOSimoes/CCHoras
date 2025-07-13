@@ -4,7 +4,8 @@
   "description": "Backend for the driver hours application",
   "main": "server.js",
   "scripts": {
-    "start": "node server.js"
+    "start": "node server.js",
+    "test": "jest"
   },
   "dependencies": {
     "bcrypt": "^5.1.1",
