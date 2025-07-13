@@ -68,22 +68,22 @@ steps:
     - '-c'
     - |
       # 1. Obtém a URL completa do serviço de backend que acabou de ser implantado.
-      BACKEND_FULL_URL=$(gcloud run services describe ${_BACKEND_SERVICE} --platform=managed --region=${_REGION} --format='value(status.url)')
+      BACKEND_FULL_URL=$$(gcloud run services describe ${_BACKEND_SERVICE} --platform=managed --region=${_REGION} --format='value(status.url)')
       
       # 2. Verifica se a URL foi obtida com sucesso.
-      if [ -z "$BACKEND_FULL_URL" ]; then
+      if [ -z "$$BACKEND_FULL_URL" ]; then
         echo "ERRO: Não foi possível obter a URL do backend."
         exit 1
       fi
 
       # 3. Remove o prefixo 'https://' para obter apenas o hostname, como esperado pelo Nginx.
-      BACKEND_HOSTNAME=$${BACKEND_FULL_URL#https://}
+      BACKEND_HOSTNAME=$$(echo "$$BACKEND_FULL_URL" | sed 's|https://||')
       
       echo "Implantando frontend com o hostname do backend: $$BACKEND_HOSTNAME"
       
       # 4. Implanta o frontend, passando a URL dinâmica como variável de ambiente.
       # $PROJECT_ID é uma substituição do Cloud Build, enquanto $$BACKEND_HOSTNAME é uma variável do nosso script.
-      gcloud run deploy cchoras-frontend \
+      gcloud run deploy ${_FRONTEND_SERVICE} \
         --image=${_REGION}-docker.pkg.dev/$PROJECT_ID/${_REPO_NAME}/frontend:latest \
         --region=${_REGION} \
         --platform=managed \

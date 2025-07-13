@@ -164,6 +164,19 @@ app.get('/api/month-summary/:year/:month', authenticateToken, asyncHandler(async
     res.json({ totalMonthMinutes: result[0]?.total || 0 });
 }));
 
+const formatMinutesToHHMM = (totalMinutes) => {
+    if (isNaN(totalMinutes) || totalMinutes < 0) return '00:00';
+    const hours = Math.floor(totalMinutes / 60);
+    const minutes = totalMinutes % 60;
+    return `${String(hours).padStart(2, '0')}:${String(minutes).padStart(2, '0')}`;
+};
+
+const formatDateToDDMMYYYY = (isoDate) => {
+    if (!isoDate || !/^\d{4}-\d{2}-\d{2}$/.test(isoDate)) return 'Data inválida';
+    const [year, month, day] = isoDate.split('-');
+    return `${day}/${month}/${year}`;
+};
+
 app.get('/api/export/month/:year/:month', authenticateToken, asyncHandler(async (req, res) => {
     const { username } = req.user;
     const { year, month } = req.params;
@@ -172,10 +185,8 @@ app.get('/api/export/month/:year/:month', authenticateToken, asyncHandler(async 
     const monthRecords = await hoursCollection.find({ username, date: { $regex: monthRegex } }).sort({ date: 1 }).toArray();
 
     let csvContent = "data,horas_trabalhadas\n";
-    monthRecords.forEach(record => {
-        const hours = Math.floor(record.totalMinutes / 60);
-        const mins = record.totalMinutes % 60;
-        csvContent += `${record.date},"${hours}h ${mins}m"\n`;
+    monthRecords.forEach(record => {        
+        csvContent += `${formatDateToDDMMYYYY(record.date)},"${formatMinutesToHHMM(record.totalMinutes)}"\n`;
     });
 
     res.header('Content-Type', 'text/csv');

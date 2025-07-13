@@ -157,18 +157,31 @@ export const renderLeaveRequests = (requests, listElement, isAdminView) => {
     }
     requests.forEach(req => {
         const li = document.createElement('li');
-        const adminButtons = isAdminView ? `
-            <div>
+        
+        const textSpan = document.createElement('span');
+        if (isAdminView) {
+            const userBold = document.createElement('b');
+            userBold.textContent = `${req.username}: `;
+            textSpan.appendChild(userBold);
+        }
+        textSpan.append(`${req.date} - `); // .append pode misturar nós e texto
+        
+        const statusSpan = document.createElement('span');
+        statusSpan.className = `status-badge status-${req.status}`;
+        statusSpan.textContent = formatLeaveStatus(req.status);
+        textSpan.appendChild(statusSpan);
+
+        li.appendChild(textSpan);
+
+        if (isAdminView) {
+            const buttonsDiv = document.createElement('div');
+            buttonsDiv.innerHTML = `
                 <button class="approve-btn" data-action="approved" data-id="${req._id}">Aprovar</button>
                 <button class="deny-btn" data-action="denied" data-id="${req._id}">Negar</button>
-                <button class="delete-btn" data-action="delete" data-id="${req._id}">Excluir</button>
-            </div>` : '';
-        
-        const statusSpan = `<span class="status-badge status-${req.status}">${formatLeaveStatus(req.status)}</span>`;
+                <button class="delete-btn" data-action="delete" data-id="${req._id}">Excluir</button>`;
+            li.appendChild(buttonsDiv);
+        }
 
-        li.innerHTML = `
-            <span>${isAdminView ? `<b>${req.username}:</b> ` : ''}${req.date} - ${statusSpan}</span>
-            ${adminButtons}`;
         listElement.appendChild(li);
     });
 };
